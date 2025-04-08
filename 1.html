@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapOCR </title>
+    <!-- Add Tesseract.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <!-- Add TensorFlow.js libraries for image description -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+   <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideInFromTop {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInFromBottom {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from { 
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            animation: fadeIn 1s ease-out;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInFromTop 0.8s ease-out;
+        }
+        .logo {
+            color: #e2e8f0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #38bdf8;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 0 20px;
+            animation: fadeIn 1.2s ease-out;
+        }
+        .page-title {
+            animation: slideInFromBottom 1s ease-out;
+        }
+        .page-subtitle {
+            animation: slideInFromBottom 1.2s ease-out;
+            margin-bottom: 40px;
+        }
+        .option {
+            width: 320px;
+            padding: 20px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease-in-out, transform 0.2s;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0;
+        }
+        .option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            animation: none;
+        }
+        #option1 {
+            animation: scaleIn 0.5s ease-out 0.8s forwards;
+        }
+        #option2 {
+            animation: scaleIn 0.5s ease-out 1.1s forwards;
+        }
+        #option3 {
+            animation: scaleIn 0.5s ease-out 1.4s forwards;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .preview-container {
+            max-width: 800px;
+            margin: 30px auto;
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: scaleIn 0.5s ease-out;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .text-output {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 15px;
+            color: #e2e8f0;
+            font-family: monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        /* Add this to your style section */
+        .loading-circle {
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 5px solid #38bdf8;
+            animation: spin 1s linear infinite;
+        }
+
+        .info-message {
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            color: #e2e8f0;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .screenshot-countdown {
+            font-size: 72px;
+            font-weight: bold;
+            color: #38bdf8;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            animation: pulse 1s infinite;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .action-button {
+            padding: 12px 25px;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .action-button:hover {
+            background: #0ea5e9;
+            transform: translateY(-3px);
+        }
+        
+        /* Animated background gradient */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Progress bar for OCR */
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .description-container {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .image-description {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 5px;
+        color: #e2e8f0;
+    }
+
+    .description-item {
+        margin: 8px 0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .description-label {
+        font-weight: bold;
+        color: #38bdf8;
+    }
+
+    .description-value {
+        text-align: right;
+    }
+
+    .description-progress {
+        height: 6px;
+        width: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-left: 10px;
+    }
+
+    .description-bar {
+        height: 100%;
+        background: #38bdf8;
+    }
+
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: #38bdf8;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Status message */
+        .status-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="navbar">
+        <div class="logo">SnapOCR</div>
+        <div class="nav-links">
+            <a href="1.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="more.html">More</a>
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">SnapOCR</h1>
+        <p class="page-subtitle">Extract text from images with our powerful OCR technology</p>
+        
+        <div id="option1" class="option" onclick="document.getElementById('fileInput').click()">Upload Image</div>
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(this)">
+        
+        <div id="option2" class="option" onclick="navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia ? takeScreenshot() : screenshotFallback()">Take Screenshot</div>
+        <div id="option3" class="option" onclick="loadDemoImage()">Try Demo Image</div>
+        
+        <div id="screenshotCountdown" class="screenshot-countdown"></div>
+        <div id="loadingSpinner" class="loading"></div>
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div id="descriptionContainer" class="description-container" style="display: none;">
+            <h2>Image Description</h2>
+            <div id="imageDescription" class="image-description">
+                <p>Click "Describe Image" to analyze the content of the image.</p>
+            </div>
+        </div>
+        
+        <div id="previewContainer" class="preview-container">
+            <h2>Image Preview</h2>
+            <img id="imagePreview" class="image-preview" src="" alt="Image preview" crossorigin="anonymous">
+            
+            <div id="progressContainer" class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
+                <div id="progressText" class="progress-text">Processing: 0%</div>
+            </div>
+            
+            <h2>Extracted Text</h2>
+            <textarea id="textOutput" class="text-output" readonly placeholder="Click 'Extract Text' to process the image..."></textarea>
+            
+            <!-- Add this div for results -->
+            <div id="resultArea"></div>
+            
+            <div class="action-buttons">
+                <button class="action-button" onclick="performOCR()">Extract Text</button>
+                <button class="action-button" onclick="describeImage()">Describe Image</button>
+                <button class="action-button" onclick="copyText()">Copy Text</button>
+                <button class="action-button" onclick="downloadText()">Download Text</button>
+                <button class="action-button" onclick="clearAll()">Clear All</button>
+            </div>
+            <div id="descriptionContainer" class="description-container" style="display: none;">
+                <h2>Image Description</h2>
+                <div id="imageDescription" class="image-description">
+                    <p>Click "Describe Image" to analyze the content of the image.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div> <!-- Added missing closing div -->
+    
+    <script>
+        // Global variable to store the Tesseract worker
+        let worker = null;
+        
+        // Initialize Tesseract worker - simplified initialization
+        async function initWorker() {
+            if (worker !== null) return;
+            
+            try {
+                // Show status that we're loading the OCR engine
+                showStatus('Loading OCR engine...', 'info');
+                
+                // Create worker with simpler configuration
+                worker = await Tesseract.createWorker({
+                    logger: progress => {
+                        if (progress.status === 'recognizing text') {
+                            updateProgress(progress.progress);
+                        }
+                    }
+                });
+                
+                // Load language data
+                await worker.loadLanguage('eng');
+                await worker.initialize('eng');
+                
+                console.log('Tesseract worker initialized successfully');
+                showStatus('OCR engine ready', 'success');
+            } catch (error) {
+                console.error('Failed to initialize Tesseract worker:', error);
+                showStatus('Failed to initialize OCR engine. Please refresh the page.', 'error');
+            }
+        }
+        
+        // Initialize worker when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initWorker();
+            
+            // Animate the logo with a subtle pulse
+            setTimeout(() => {
+                document.querySelector('.logo').style.animation = 'pulse 2s infinite';
+            }, 2000);
+        });
+        
+        // Function to show status messages
+        function showStatus(message, type = 'info') {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.style.display = 'block';
+            
+            // Set color based on message type
+            if (type === 'error') {
+                statusElement.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                statusElement.style.color = '#ef4444';
+            } else if (type === 'success') {
+                statusElement.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+                statusElement.style.color = '#22c55e';
+            } else {
+                statusElement.style.backgroundColor = 'rgba(56, 189, 248, 0.1)';
+                statusElement.style.color = '#38bdf8';
+            }
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Function to update progress bar
+        function updateProgress(progress) {
+            const percent = Math.round(progress * 100);
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressText').textContent = `Processing: ${percent}%`;
+        }
+        
+        // Function to preview the uploaded image
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('previewContainer').style.display = 'block';
+                    document.getElementById('textOutput').value = '';
+                    if (document.getElementById('resultArea')) {
+                        document.getElementById('resultArea').innerHTML = '';
+                    }
+                    showStatus('Image loaded successfully. Click "Extract Text" to process.', 'success');
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Function to simulate taking a screenshot
+        // Function to take a screenshot using the Screen Capture API
+async function takeScreenshot() {
+    // Check if the browser supports the Screen Capture API
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        showStatus('Your browser doesn\'t support screen capture. Try Chrome, Edge, or Firefox.', 'error');
+        return;
+    }
+    
+    try {
+        // Show instructions to the user
+        showStatus('Select the screen or window you want to capture in the dialog that appears.', 'info');
+        
+        // Request screen capture permission and stream
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { 
+                cursor: "always",
+                displaySurface: "window" 
+            },
+            audio: false
+        });
+        
+        // Create a video element to capture a frame from the stream
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        
+        // Wait for the video to load enough to capture
+        await new Promise(resolve => {
+            video.onloadedmetadata = () => {
+                video.play();
+                resolve();
+            };
+        });
+        
+        // Allow a brief moment for the video to start playing
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Create a canvas to draw the captured frame
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw the current video frame to the canvas
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Stop all tracks in the stream to release the screen capture
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Convert the canvas to an image
+        const screenshotDataUrl = canvas.toDataURL('image/png');
+        
+        // Display the captured screenshot
+        document.getElementById('imagePreview').src = screenshotDataUrl;
+        document.getElementById('previewContainer').style.display = 'block';
+        document.getElementById('textOutput').value = '';
+        
+        // Clear any previous results
+        if (document.getElementById('resultArea')) {
+            document.getElementById('resultArea').innerHTML = '';
+        }
+        
+        // Hide description container if it exists
+        if (document.getElementById('descriptionContainer')) {
+            document.getElementById('descriptionContainer').style.display = 'none';
+        }
+        
+        // Generate a timestamp similar to the Python code
+        const now = new Date();
+        const timestamp = now.toISOString()
+            .replace(/[-:]/g, '')
+            .replace('T', '_')
+            .split('.')[0];
+        
+        showStatus(`Screenshot captured! (screenshot_${timestamp}.png)`, 'success');
+        
+    } catch (error) {
+        // This error occurs when the user cancels the screen selection dialog
+        if (error.name === 'NotAllowedError') {
+            showStatus('Screen capture permission denied or cancelled.', 'error');
+        } else {
+            console.error('Error capturing screenshot:', error);
+            showStatus('Failed to capture screenshot: ' + error.message, 'error');
+        }
+    }
+}
+        // Function to handle screenshot for unsupported browsers
+        function screenshotFallback() {
+            // Create a modal with instructions
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.flexDirection = 'column';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.color = 'white';
+            modal.style.padding = '20px';
+            modal.style.boxSizing = 'border-box';
+            
+            // Add instructions
+            modal.innerHTML = `
+                <h2>Screenshot Instructions</h2>
+                <p>Your browser doesn't support automatic screen capture. Please follow these steps:</p>
+                <ol style="text-align: left; max-width: 500px;">
+                    <li>Take a screenshot using your system's screenshot tool:
+                        <ul>
+                            <li>Windows: Press <strong>Windows+Shift+S</strong> or <strong>PrtScn</strong></li>
+                            <li>Mac: Press <strong>Command+Shift+3</strong> or <strong>Command+Shift+4</strong></li>
+                            <li>Linux: Press <strong>PrtScn</strong> or use your distribution's screenshot tool</li>
+                        </ul>
+                    </li>
+                    <li>Save the screenshot to your computer</li>
+                    <li>Click the "Upload Image" button on this page and select your saved screenshot</li>
+                </ol>
+                <button id="closeModalBtn" style="padding: 10px 20px; margin-top: 20px; background: #38bdf8; border: none; border-radius: 5px; color: #0f172a; font-weight: bold; cursor: pointer;">Close</button>
+            `;
+            
+            // Add the modal to the document
+            document.body.appendChild(modal);
+            
+            // Add event listener to close button
+            document.getElementById('closeModalBtn').addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+        }
+
+                
+                // Function to simulate screenshot capture
+                function simulateScreenshot() {
+                    // In a real application, this would capture the actual screen
+                    // For demo purposes, we'll use a placeholder image with text
+                    const demoImage = new Image();
+                    demoImage.crossOrigin = "Anonymous";
+                    demoImage.onload = function() {
+                        document.getElementById('imagePreview').src = demoImage.src;
+                        document.getElementById('previewContainer').style.display = 'block';
+                        document.getElementById('textOutput').value = '';
+                        if (document.getElementById('resultArea')) {
+                            document.getElementById('resultArea').innerHTML = '';
+                        }
+                        showStatus('Screenshot captured! Click "Extract Text" to process.', 'success');
+                    };
+                    demoImage.onerror = function() {
+                        showStatus('Failed to load demo image. Try uploading your own image.', 'error');
+                    };
+                    // Use a text-heavy image from Lorem Picsum
+                    demoImage.src = 'https://picsum.photos/800/600?text=Sample+Text+for+OCR+Testing';
+                }
+                
+                // Function to load a demo image with text
+                function loadDemoImage() {
+                    const demoImage = new Image();
+                    demoImage.crossOrigin = "Anonymous";
+                    demoImage.onload = function() {
+                        document.getElementById('imagePreview').src = demoImage.src;
+                        document.getElementById('previewContainer').style.display = 'block';
+                        document.getElementById('textOutput').value = '';
+                        if (document.getElementById('resultArea')) {
+                            document.getElementById('resultArea').innerHTML = '';
+                        }
+                        showStatus('Demo image loaded! Click "Extract Text" to process.', 'success');
+                    };
+                    demoImage.onerror = function() {
+                        showStatus('Failed to load demo image. Try uploading your own image.', 'error');
+                    };
+                    // Use a sample image with clear text
+                    demoImage.src = 'https://tesseract.projectnaptha.com/img/eng_bw.png';
+                }
+                // Global variable to store the MobileNet model
+        let imageModel = null;
+
+        // Initialize MobileNet model
+        async function initImageModel() {
+            if (imageModel !== null) return;
+            
+            try {
+                showStatus('Loading image recognition model...', 'info');
+                imageModel = await mobilenet.load();
+                console.log('MobileNet model loaded successfully');
+                showStatus('Image recognition model ready', 'success');
+            } catch (error) {
+                console.error('Failed to load MobileNet model:', error);
+                showStatus('Failed to load image recognition model', 'error');
+            }
+        }
+
+        // Initialize the model when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initWorker();
+            initImageModel();
+            
+            // Animate the logo with a subtle pulse
+            setTimeout(() => {
+                document.querySelector('.logo').style.animation = 'pulse 2s infinite';
+            }, 2000);
+        });
+
+        // Function to describe the image
+        async function describeImage() {
+            const imageElement = document.getElementById('imagePreview');
+            const descriptionContainer = document.getElementById('descriptionContainer');
+            const imageDescription = document.getElementById('imageDescription');
+            
+            // Check if image is loaded
+            if (!imageElement.src || imageElement.src === window.location.href) {
+                showStatus('Please upload an image first', 'error');
+                return;
+            }
+            
+            // Check if model is initialized
+            if (!imageModel) {
+                showStatus('Image recognition model is loading. Please wait...', 'info');
+                try {
+                    await initImageModel();
+                } catch (error) {
+                    showStatus('Failed to load image recognition model. Please refresh the page.', 'error');
+                    return;
+                }
+            }
+            
+            // Show loading state
+            descriptionContainer.style.display = 'block';
+            imageDescription.innerHTML = '<div class="loading-circle"></div><p>Analyzing image...</p>';
+            showStatus('Analyzing image content...', 'info');
+            
+            try {
+                // Classify the image
+                const predictions = await imageModel.classify(imageElement, 5);
+                
+                // Format the results
+                let descriptionHTML = '<h3>What\'s in this image?</h3>';
+                
+                if (predictions && predictions.length > 0) {
+                    descriptionHTML += '<div class="description-list">';
+                    
+                    predictions.forEach(prediction => {
+                        const percentage = Math.round(prediction.probability * 100);
+                        descriptionHTML += `
+                            <div class="description-item">
+                                <span class="description-label">${prediction.className}</span>
+                                <div style="display: flex; align-items: center;">
+                                    <span class="description-value">${percentage}%</span>
+                                    <div class="description-progress">
+                                        <div class="description-bar" style="width: ${percentage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    descriptionHTML += '</div>';
+                    showStatus('Image analysis complete!', 'success');
+                } else {
+                    descriptionHTML += '<p>Could not identify any objects in this image.</p>';
+                    showStatus('No objects identified in the image', 'info');
+                }
+                
+                // Display the results
+                imageDescription.innerHTML = descriptionHTML;
+                
+            } catch (error) {
+                console.error('Image description error:', error);
+                imageDescription.innerHTML = '<p>Error analyzing the image. Please try again with a different image.</p>';
+                showStatus('Error during image analysis: ' + (error.message || 'Unknown error'), 'error');
+            }
+        }
+        // Function to automatically process a screenshot after capture
+        async function processScreenshot(screenshotDataUrl) {
+            // Display the screenshot
+            document.getElementById('imagePreview').src = screenshotDataUrl;
+            document.getElementById('previewContainer').style.display = 'block';
+            
+            // Automatically start OCR if worker is ready
+            if (worker) {
+                await performOCR();
+            } else {
+                showStatus('OCR engine is initializing. Please click "Extract Text" when ready.', 'info');
+            }
+        }
+
+        // Function to perform OCR with enhanced preprocessing
+async function performOCR() {
+    const imageElement = document.getElementById('imagePreview');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const progressContainer = document.getElementById('progressContainer');
+    const textOutput = document.getElementById('textOutput');
+    const resultArea = document.getElementById('resultArea');
+
+    // Check if image is loaded
+    if (!imageElement.src || imageElement.src === window.location.href) {
+        showStatus('Please upload an image first', 'error');
+        return;
+    }
+
+    // Make sure worker is initialized
+    if (!worker) {
+        showStatus('OCR engine is initializing. Please wait...', 'info');
+        try {
+            await initWorker();
+        } catch (error) {
+            showStatus('Failed to initialize OCR engine. Please refresh the page.', 'error');
+            return;
+        }
+    }
+
+    // Show loading spinner and progress bar
+    loadingSpinner.style.display = 'block';
+    progressContainer.style.display = 'block';
+    textOutput.value = 'Processing image, please wait...';
+    showStatus('Enhancing image and extracting text...', 'info');
+
+    // Add loading circle animation if resultArea exists
+    if (resultArea) {
+        resultArea.innerHTML = '<div class="loading-circle"></div>';
+    }
+
+    try {
+        // Reset progress bar
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressText').textContent = 'Processing: 0%';
+
+        // Create a canvas for image preprocessing
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = imageElement.naturalWidth;
+        canvas.height = imageElement.naturalHeight;
+        
+        // Draw the image to canvas
+        ctx.drawImage(imageElement, 0, 0);
+        
+        // Apply image preprocessing for better OCR results
+        applyImagePreprocessing(canvas, ctx);
+        
+        // Set advanced recognition options
+        const recognitionOptions = {
+            tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,;:!?()[]{}"\'-+=/\\@#$%^&*<>|~ ',
+            tessedit_pageseg_mode: '6', // Assume a single uniform block of text
+            preserve_interword_spaces: '1',
+        };
+        
+        // Perform OCR with enhanced options
+        const result = await worker.recognize(canvas, recognitionOptions);
+        
+        // Get the extracted text and confidence
+        const extractedText = result.data.text;
+        const confidence = result.data.confidence;
+        
+        // Display the extracted text with formatting
+        if (extractedText.trim()) {
+            // Format the text (preserve paragraphs, fix common OCR issues)
+            const formattedText = formatExtractedText(extractedText);
+            
+            // Update the text output
+            textOutput.value = formattedText;
+            
+            // Create a nicely formatted result display
+            if (resultArea) {
+                resultArea.innerHTML = createFormattedResultHTML(formattedText, confidence);
+            }
+            
+            showStatus(`Text extraction complete! (Confidence: ${Math.round(confidence)}%)`, 'success');
+        } else {
+            textOutput.value = 'No text was found in this image. Try with a different image.';
+            if (resultArea) {
+                resultArea.innerHTML = '<div class="info-message">No text detected in the image</div>';
+            }
+            showStatus('No text detected in the image', 'info');
+        }
+        
+        // Add a subtle animation to the text area
+        textOutput.style.animation = 'fadeIn 0.5s ease-out';
+        
+    } catch (error) {
+        console.error('OCR Error:', error);
+        textOutput.value = 'Error extracting text. Please try again with a different image.';
+        if (resultArea) {
+            resultArea.innerHTML = '<div class="info-message error-message">Error during text extraction</div>';
+        }
+        showStatus('Error during text extraction: ' + (error.message || 'Unknown error'), 'error');
+    } finally {
+        // Hide loading spinner and progress bar
+        loadingSpinner.style.display = 'none';
+        progressContainer.style.display = 'none';
+    }
+}
+
+// Function to apply image preprocessing for better OCR
+function applyImagePreprocessing(canvas, ctx) {
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Apply grayscale
+    for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = avg;     // red
+        data[i + 1] = avg; // green
+        data[i + 2] = avg; // blue
+    }
+    
+    // Apply contrast enhancement
+    const factor = 259 * (128 + 50) / (255 * (259 - 50));
+    for (let i = 0; i < data.length; i += 4) {
+        data[i] = factor * (data[i] - 128) + 128;
+        data[i + 1] = factor * (data[i + 1] - 128) + 128;
+        data[i + 2] = factor * (data[i + 2] - 128) + 128;
+    }
+    
+    // Apply thresholding for text (optional, can be adjusted)
+    /*
+    for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        const val = avg > 120 ? 255 : 0;
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+    }
+    */
+    
+    // Put the modified image data back
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// Function to format extracted text
+function formatExtractedText(text) {
+    // Replace multiple spaces with a single space
+    let formatted = text.replace(/\s+/g, ' ');
+    
+    // Preserve paragraph breaks
+    formatted = formatted.replace(/\n\s*\n/g, '\n\n');
+    
+    // Fix common OCR errors
+    formatted = formatted
+        .replace(/[|]l/g, 'I')       // Fix pipe character mistaken for 'I'
+        .replace(/rn/g, 'm')         // Fix 'rn' mistaken for 'm'
+        .replace(/[oO]0/g, 'O')      // Fix '0' mistaken for 'O'
+        .replace(/1I/g, 'H')         // Fix '1I' mistaken for 'H'
+        .replace(/\b[cC][lI]\b/g, 'd') // Fix 'cl' mistaken for 'd'
+        .trim();
+    
+    return formatted;
+}
+
+// Function to create formatted HTML for the result
+function createFormattedResultHTML(text, confidence) {
+    // Calculate word count and character count
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    const charCount = text.length;
+    
+    // Create a confidence indicator class
+    let confidenceClass = 'low-confidence';
+    if (confidence > 80) {
+        confidenceClass = 'high-confidence';
+    } else if (confidence > 60) {
+        confidenceClass = 'medium-confidence';
+    }
+    
+    return `
+        <div class="ocr-result-container">
+            <div class="ocr-stats">
+                <div class="ocr-stat-item">
+                    <span class="ocr-stat-label">Confidence:</span>
+                    <span class="ocr-stat-value ${confidenceClass}">${Math.round(confidence)}%</span>
+                </div>
+                <div class="ocr-stat-item">
+                    <span class="ocr-stat-label">Words:</span>
+                    <span class="ocr-stat-value">${wordCount}</span>
+                </div>
+                <div class="ocr-stat-item">
+                    <span class="ocr-stat-label">Characters:</span>
+                    <span class="ocr-stat-value">${charCount}</span>
+                </div>
+            </div>
+            
+           
+            
+    `;
+}
+
+        
+        // Function to copy the extracted text to clipboard
+        function copyText() {
+            const textOutput = document.getElementById('textOutput');
+            const text = textOutput.value;
+            
+            if (!text || text === 'Processing image, please wait...' ||
+                text === 'No text was found in this image. Try with a different image.' ||
+                text === 'Error extracting text. Please try again with a different image.') {
+                showStatus('No text to copy!', 'error');
+                return;
+            }
+            
+            // Use modern clipboard API if available
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showStatus('Text copied to clipboard!', 'success');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        fallbackCopyText();
+                    });
+            } else {
+                fallbackCopyText();
+            }
+            
+            // Fallback copy method
+            function fallbackCopyText() {
+                textOutput.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showStatus('Text copied to clipboard!', 'success');
+                    } else {
+                        showStatus('Failed to copy text', 'error');
+                    }
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    showStatus('Failed to copy text', 'error');
+                }
+            }
+        }
+        
+                // Function to download the extracted text as a file
+                function downloadText() {
+            const text = document.getElementById('textOutput').value;
+            if (!text ||
+                text === 'Processing image, please wait...' ||
+                text === 'No text was found in this image. Try with a different image.' ||
+                text === 'Error extracting text. Please try again with a different image.') {
+                showStatus('No text to download!', 'error');
+                return;
+            }
+            
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            const link = document.createElement("a");
+            
+            link.href = url;
+            link.download = `extracted_text_${timestamp}.txt`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showStatus('Text file downloaded!', 'success');
+        }
+        
+        // Function to clear all data
+        
+        function clearAll() {
+            document.getElementById('imagePreview').src = "";
+            document.getElementById('textOutput').value = "";
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('fileInput').value = "";
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').textContent = 'Processing: 0%';
+            document.getElementById('progressContainer').style.display = 'none';
+            
+            // Clear the result area if it exists
+            if (document.getElementById('resultArea')) {
+                document.getElementById('resultArea').innerHTML = '';
+            }
+            
+            // Clear the description container
+            if (document.getElementById('descriptionContainer')) {
+                document.getElementById('descriptionContainer').style.display = 'none';
+                document.getElementById('imageDescription').innerHTML = '<p>Click "Describe Image" to analyze the content of the image.</p>';
+            }
+            
+            showStatus('All data cleared', 'info');
+        }
+
+        // Clean up Tesseract worker when page is unloaded
+        window.addEventListener('beforeunload', async () => {
+            if (worker) {
+                try {
+                    await worker.terminate();
+                    worker = null;
+                } catch (error) {
+                    console.error('Error terminating worker:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

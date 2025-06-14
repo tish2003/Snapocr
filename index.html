@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapOCR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        
+        .glow-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url('logo.png') center/cover no-repeat;
+    opacity: 0.2;/* 80% opacity */
+    z-index: -1;
+}
+
+
+        @keyframes glow {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.7; }
+        }
+
+        .logo {
+    width: 120px;  /* Adjust size as needed */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px; /* Optional: rounded corners */
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+}
+
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px cyan; }
+            100% { box-shadow: 0 0 25px cyan; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 20px 0;
+            text-shadow: 0 0 15px cyan;
+        }
+
+        p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 10px auto;
+            opacity: 0.8;
+        }
+
+        .launch-btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #0047AB, #00d4ff);
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.launch-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+}
+
+    </style>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="logo"></div>
+    <h1>SnapOCR</h1>
+    <p>Extract text from images instantly with AI-powered OCR. Upload an image, scan text, and copy it easily!</p>
+    <a href="https://snapocr.streamlit.app/" target="_blank" class="launch-btn">Launch App 🚀</a>
+</body>
+</html>

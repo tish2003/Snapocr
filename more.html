@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More - Img2Txt Converter</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo {
+            color: #e2e8f0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #38bdf8;
+        }
+        .container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card h3 {
+            color: #38bdf8;
+            margin-top: 0;
+        }
+        .card p {
+            line-height: 1.6;
+        }
+        .faq-item {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .faq-question {
+            font-weight: bold;
+            color: #38bdf8;
+            margin-bottom: 8px;
+        }
+        .faq-answer {
+            line-height: 1.6;
+        }
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .contact-form input, 
+        .contact-form textarea {
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+        .contact-form button {
+            padding: 12px;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .contact-form button:hover {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">Img2Txt</div>
+        <div class="nav-links">
+            <a href="1.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="more.html">More</a>
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+    <div class="container">
+        <h1>More Information</h1>
+        
+        <div class="card">
+            <h3>Supported Languages</h3>
+            <p>
+                Our OCR technology supports text recognition in multiple languages including:
+                English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Chinese, Japanese, Korean, Arabic, and many more.
+            </p>
+        </div>
+        
+        <div class="card">
+            <h3>Frequently Asked Questions</h3>
+            
+            <div class="faq-item">
+                <div class="faq-question">What image formats are supported?</div>
+                <div class="faq-answer">
+                    We support most common image formats including PNG, JPG, JPEG, BMP, and GIF.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Is there a limit to the image size?</div>
+                <div class="faq-answer">
+                    For optimal performance, we recommend images under 10MB. Larger images may be processed but might take longer.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">How accurate is the text extraction?</div>
+                <div class="faq-answer">
+                    Our OCR technology achieves high accuracy for clear, well-lit images with standard fonts. Handwritten text and unusual fonts may have lower accuracy.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Can I extract text from screenshots?</div>
+                <div class="faq-answer">
+                    Yes! Our application works perfectly with screenshots. You can either upload a screenshot or use our built-in screenshot capture feature.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Contact Us</h3>
+            <p>Have questions or feedback? Reach out to us!</p>
+            
+            <form class="contact-form">
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <textarea rows="5" placeholder="Your Message" required></textarea>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
+    </script>
+</body>
+</html>

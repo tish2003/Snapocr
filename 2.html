@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Img2Txt Converter</title>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideInFromTop {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInFromBottom {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from { 
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            animation: fadeIn 1s ease-out;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInFromTop 0.8s ease-out;
+        }
+        .logo {
+            color: #e2e8f0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #38bdf8;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 0 20px;
+            animation: fadeIn 1.2s ease-out;
+        }
+        .page-title {
+            animation: slideInFromBottom 1s ease-out;
+        }
+        .page-subtitle {
+            animation: slideInFromBottom 1.2s ease-out;
+            margin-bottom: 40px;
+        }
+        .option {
+            width: 320px;
+            padding: 20px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease-in-out, transform 0.2s;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0;
+        }
+        .option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            animation: none;
+        }
+        #option1 {
+            animation: scaleIn 0.5s ease-out 0.8s forwards;
+        }
+        #option2 {
+            animation: scaleIn 0.5s ease-out 1.1s forwards;
+        }
+        #option3 {
+            animation: scaleIn 0.5s ease-out 1.4s forwards;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .preview-container {
+            max-width: 800px;
+            margin: 30px auto;
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: scaleIn 0.5s ease-out;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .text-output {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 15px;
+            color: #e2e8f0;
+            font-family: monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            margin: 20px auto;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 5px solid #38bdf8;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .screenshot-countdown {
+            font-size: 72px;
+            font-weight: bold;
+            color: #38bdf8;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            animation: pulse 1s infinite;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .action-button {
+            padding: 12px 25px;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .action-button:hover {
+            background: #0ea5e9;
+            transform: translateY(-3px);
+        }
+        
+        /* Animated background gradient */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="navbar">
+        <div class="logo">Img2Txt</div>
+        <div class="nav-links">
+            <a href="1.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="more.html">More</a>
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">Image to Text Converter</h1>
+        <p class="page-subtitle">Extract text from images with our powerful OCR technology</p>
+        
+        <div id="option1" class="option" onclick="document.getElementById('fileInput').click()">Upload Image</div>
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(this)">
+        
+        <div id="option2" class="option" onclick="takeScreenshot()">Take Screenshot</div>
+        <div id="option3" class="option" onclick="demoExtraction()">Try Demo Image</div>
+        
+        <div id="screenshotCountdown" class="screenshot-countdown"></div>
+        <div id="loadingSpinner" class="loading"></div>
+        
+        <div id="previewContainer" class="preview-container">
+            <h2>Image Preview</h2>
+            <img id="imagePreview" class="image-preview" src="" alt="Image preview">
+            
+            <h2>Extracted Text</h2>
+            <textarea id="textOutput" class="text-output" readonly></textarea>
+            
+            <div class="action-buttons">
+                <button class="action-button" onclick="copyText()">Copy Text</button>
+                <button class="action-button" onclick="downloadText()">Download Text</button>
+                <button class="action-button" onclick="clearAll()">Clear All</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add a welcome animation when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate the logo with a subtle pulse
+            setTimeout(() => {
+                document.querySelector('.logo').style.animation = 'pulse 2s infinite';
+            }, 2000);
+        });
+        
+        // Function to preview the uploaded image
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('previewContainer').style.display = 'block';
+                    
+                    // Automatically extract text from the image
+                    extractText();
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Function to simulate taking a screenshot
+        function takeScreenshot() {
+            const countdown = document.getElementById('screenshotCountdown');
+            let count = 3;
+            
+            // Display countdown
+            countdown.style.display = 'block';
+            countdown.textContent = count;
+            
+            const countdownInterval = setInterval(() => {
+                count--;
+                countdown.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    countdown.style.display = 'none';
+                    
+                    // Simulate screenshot capture (in a real app, this would use a screenshot API)
+                    simulateScreenshot();
+                }
+            }, 1000);
+        }
+        
+        // Function to simulate screenshot capture
+        function simulateScreenshot() {
+            // In a real application, this would capture the actual screen
+            // For demo purposes, we'll use a placeholder image
+            document.getElementById('imagePreview').src = 'https://source.unsplash.com/random/800x600/?document';
+            document.getElementById('previewContainer').style.display = 'block';
+            
+            // Extract text from the "screenshot"
+            setTimeout(() => {
+                extractText();
+            }, 500);
+        }
+        
+        // Function to load a demo image
+        function demoExtraction() {
+            document.getElementById('imagePreview').src = 'https://source.unsplash.com/random/800x600/?text';
+            document.getElementById('previewContainer').style.display = 'block';
+            
+            // Extract text from the demo image
+            setTimeout(() => {
+                extractText();
+            }, 500);
+        }
+        
+        // Function to extract text from the image
+        function extractText() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'block';
+            
+            // Simulate OCR processing (in a real app, this would call an OCR API)
+            setTimeout(() => {
+                // Generate some sample extracted text
+                const sampleText = "This is a demonstration of extracted text from an image.\n\n" +
+                    "In a real application, this text would be extracted using OCR technology " +
+                    "such as Tesseract.js, Google Cloud Vision API, or another OCR service.\n\n" +
+                    "The extracted text would appear here and could be copied or downloaded " +
+                    "for further use in your documents or applications.";
+                
+                document.getElementById('textOutput').value = sampleText;
+                loadingSpinner.style.display = 'none';
+                
+                // Add a subtle animation to the text area to draw attention
+                const textOutput = document.getElementById('textOutput');
+                textOutput.style.animation = 'fadeIn 0.5s ease-out';
+            }, 2000); // Simulate 2 seconds of processing time
+        }
+        
+        // Function to copy the extracted text to clipboard
+        function copyText() {
+            const textOutput = document.getElementById('textOutput');
+            textOutput.select();
+            document.execCommand('copy');
+            
+            // Show a temporary "Copied!" message
+            const originalText = textOutput.value;
+            textOutput.value = "Text copied to clipboard!";
+            
+            setTimeout(() => {
+                textOutput.value = originalText;
+            }, 1500);
+        }
+        
+        // Function to download the extracted text as a file
+        function downloadText() {
+            const text = document.getElementById('textOutput').value;
+            if (!text) {
+                alert("No text to download!");
+                return;
+            }
+            
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            const link = document.createElement("a");
+            
+            link.href = url;
+            link.download = `extracted_text_${timestamp}.txt`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // Function to clear all data
+        function clearAll() {
+            document.getElementById('imagePreview').src = "";
+            document.getElementById('textOutput').value = "";
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('fileInput').value = "";
+        }
+    </script>
+</body>
+</html>
